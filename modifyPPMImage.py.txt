@@ -1,0 +1,182 @@
+
+# This program is used to read a .ppm image file and applies number of filters to the image and creates a new manipulated image file.
+
+def horizontalFlip(data,size_x,size_y):
+    columnSize = 3 * int(size_x)
+    rowSize = int(size_y)
+    i = 0
+    rowData = [''] * rowSize
+
+    # To append row wise data into an array
+    for j in range(0, rowSize):
+        for k in range(0, columnSize):
+            rowData[j] = rowData[j] + ' ' + data[i]
+            i += 1
+    # Horizontally flips each row
+    for d in range(0, len(rowData)):
+        data_1 = rowData[d].split()             # Splits row data
+        rgb = [data_1[l] + ' ' + data_1[l + 1] + ' ' + data_1[l + 2] for l in range(0, len(data_1), 3)]     # Frames single data into RGB format
+
+        rgbArranged = ''
+        rgbLen = len(rgb) - 1
+        rgbTemp = [rgb[i] for i in range(0, len(rgb))]          # Copying values of RGB into temporary variable
+
+        for j in range(0, len(rgb)):                            # flips horizontal value
+            rgb[j] = rgbTemp[rgbLen]
+            rgbLen -= 1
+            rgbArranged = rgbArranged + rgb[j] + '  '
+        rowData[d] = rgbArranged.split()
+
+    dataIndex=0
+    for i in range(0, rowSize):
+        for j in range(0, columnSize):
+            data[dataIndex]=rowData[i][j]
+            dataIndex=dataIndex+1
+
+def grayScale(data):                              # sets each pixel value to the average of the three
+    for l in range(0, len(data), 3):
+        rgb = (int(data[l]) + int(data[l + 1]) + int(data[l + 2]))/3
+        data[l]=str(rgb)
+        data[l+1]=str(rgb)
+        data[l+2]=str(rgb)
+
+def invertRgb(data,max):                          # Subracts each pixel from the maximum colour
+    for i in range(0, len(data)):
+        rgb = int(max) -int(data[i])
+        data[i]=str(rgb)
+
+def flattenRed(data):                             # sets the red value to zero
+    for i in range(0, len(data),3):
+        data[i]='0'
+
+def flattenGreen(data):                           #  sets the green value to zero
+    for i in range(1, len(data),3):
+        data[i]='0'
+
+def flattenBlue(data):
+    for i in range(2, len(data),3):             # sets the blue value to zero
+        data[i]='0'
+
+def highContrast(data,max):                     # Increases the contrast level of the image
+    middle = int(max[0])/2
+    for i in range(0, len(data)):
+        if int(data[i]) > middle:
+            data[i]=max[0]
+        else:
+            data[i]='0'
+
+def randomNoise(data,max):                      # Generate random noise in the ppm image
+    from random import randrange
+    for i in range(0, len(data)):
+        random_number = randrange(50)  # from 0 to 50 and 50 is not included
+        temp = int(data[i]) + random_number
+        if temp > int(max):
+            temp= int(max)
+        data[i]=str(temp)
+
+def displayMenu():                              # Displays the various filter option
+    print('Choose an option')
+    print('1. Flip image horizontally')
+    print('2. Convert to greyscale')
+    print('3. Invert image colors')
+    print('4. Flatten red')
+    print('5. Flatten green')
+    print('6. Flatten Blue')
+    print('7. Random noise')
+    print('8. Extreme contrast')
+    print('9. Exit')
+
+def writeFile():                                  # Creates a new file and writes the manipulated data
+    outfile = open(filePath + '\\' + OutFileName, 'w')
+    size = size_x + ' ' + size_y
+    outfile.write(color[0])  # Writing PPM magic number
+    outfile.write("\n")
+    outfile.write(size)  # Writing column size and row size
+    outfile.write("\n")
+    outfile.write(max[0])  # Writing the maximum color value
+    outfile.write("\n")
+    for i in range(0, len(imageValues)):
+        outfile.write(imageValues[i])  # Writing the manipulated data
+        outfile.write("\n")
+    outfile.close()
+
+
+# Main function
+while(True):
+    filePath = raw_input('Please enter your file path (e.g "P:\Python\InputFile"): ')
+    fileName = raw_input('Please enter your file name (e.g "sample.ppm"): ')
+
+    file=filePath+"\\"+fileName
+
+    # To open and read file data
+    try:
+        infile = open(file, 'r')
+        break
+    except:
+        print '\nPlease enter valid file path and file name...\n'
+
+color = infile.readline().splitlines()          # Gets PPM magic number
+size_x, size_y = infile.readline().split()      # Gets column size and row size
+max = infile.readline().splitlines()            # Gets the maximum color value
+imageValues = infile.read().split()             # Gets each pixel value
+infile.close()
+
+checker = True
+
+while(checker):
+
+    # This functions displays the image manipulation menu
+    displayMenu()
+
+    # To get the value of function to be performed
+    menuChoice = input('Please enter your choice from 1 to 9: ')
+    if (menuChoice > 0 and menuChoice < 9):
+        print 'Please wait while your image is being processed...','\n'
+
+    # functions performed based on input value
+    if (menuChoice == 1):
+        horizontalFlip(imageValues, size_x, size_y)
+        checker = True
+    if (menuChoice == 2):
+        grayScale(imageValues)
+        checker = True
+    if (menuChoice == 3):
+        invertRgb(imageValues,max[0])
+        checker = True
+    if (menuChoice == 4):
+        flattenRed(imageValues)
+        checker = True
+    if (menuChoice == 5):
+        flattenGreen(imageValues)
+        checker = True
+    if (menuChoice == 6):
+        flattenBlue(imageValues)
+        checker = True
+    if (menuChoice == 7):
+        randomNoise(imageValues,max[0])
+        checker = True
+    if (menuChoice == 8):
+        highContrast(imageValues,max)
+        checker = True
+    if (menuChoice == 9):
+        print '\nThank you! And have a Great Day!'
+        break
+    if (menuChoice > 9 or menuChoice < 1):
+        print '\nPlease enter a valid choice.\n'
+    # Writing the manipulated image into a new file
+    if (menuChoice > 0 and menuChoice < 9):
+        OutFileName='Output_'+fileName                  # Framing the output file name
+        writeFile()                                     # Writing output file
+        print 'Please find the output file "',OutFileName,'" in the following path: "',filePath,'"','\n'
+        while(True):
+            print('Do you want to apply more filters?')
+            print('1. Yes')
+            print('2. No')
+            moreFilter = input('PLease choose between 1 and 2: ')
+            if (moreFilter > 2 or moreFilter < 1 ):
+                print '\nPlease enter a valid choice.\n'
+            else:
+                break
+        if (moreFilter == 2):
+            print '\nThank you! And have a Great Day!'
+            break
